@@ -1,0 +1,157 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Load Dataset
+df = pd.read_csv("Titanic.csv")
+
+# Display first and last 5 rows
+print(df.head())
+print(df.tail())
+
+# Dataset information
+print("Shape of dataset:", df.shape)
+print(df.columns)
+print(df.info())
+print(df.describe())
+
+# Check missing values
+print(df.isnull().sum())
+
+# Missing values visualization
+plt.figure(figsize=(8, 5))
+sns.heatmap(df.isnull(), cbar=False, cmap="viridis")
+plt.title("Missing Values")
+plt.show()
+
+# Handle missing values
+df["Age"] = df["Age"].fillna(df["Age"].median())
+df["Embarked"] = df["Embarked"].fillna(df["Embarked"].mode()[0])
+
+print(df.isnull().sum())
+
+# Check duplicate values
+print("Duplicate values:", df.duplicated().sum())
+
+# Outlier detection - Age
+sns.boxplot(x=df["Age"])
+plt.show()
+
+# Remove outliers from Age using IQR
+Q1 = df["Age"].quantile(0.25)
+Q3 = df["Age"].quantile(0.75)
+
+IQR = Q3 - Q1
+
+lower = Q1 - 1.5 * IQR
+upper = Q3 + 1.5 * IQR
+
+df = df[(df["Age"] >= lower) & (df["Age"] <= upper)]
+
+sns.boxplot(x=df["Age"])
+plt.show()
+
+# Outlier detection - Fare
+sns.boxplot(x=df["Fare"])
+plt.show()
+
+# Remove outliers from Fare using IQR
+Q1 = df["Fare"].quantile(0.25)
+Q3 = df["Fare"].quantile(0.75)
+
+IQR = Q3 - Q1
+
+lower = Q1 - 1.5 * IQR
+upper = Q3 + 1.5 * IQR
+
+df = df[(df["Fare"] >= lower) & (df["Fare"] <= upper)]
+
+sns.boxplot(x=df["Fare"])
+plt.show()
+
+# Encoding categorical data
+df["Sex"] = df["Sex"].replace("male", 1)
+df["Sex"] = df["Sex"].replace("female", 0)
+
+print(df["Embarked"].unique())
+
+# Univariate Analysis - Age
+plt.figure(figsize=(6, 4))
+sns.histplot(df["Age"], bins=20, kde=True)
+plt.title("Age Distribution")
+plt.show()
+
+# Univariate Analysis - Fare
+plt.figure(figsize=(6, 4))
+sns.histplot(df["Fare"], bins=20, kde=True)
+plt.title("Fare Distribution")
+plt.show()
+
+# Gender Count
+sns.countplot(x="Sex", data=df)
+plt.title("Gender Count")
+plt.show()
+
+# Pclass Count
+sns.countplot(x="Pclass", data=df)
+plt.title("Pclass Count")
+plt.show()
+
+# Embarked Count
+sns.countplot(x="Embarked", data=df)
+plt.title("Embarked Count")
+plt.show()
+
+# Bivariate Analysis
+sns.countplot(x="Sex", hue="Survived", data=df)
+plt.title("Gender vs Survived")
+plt.show()
+
+sns.countplot(x="Embarked", hue="Survived", data=df)
+plt.title("Embarked vs Survived")
+plt.show()
+
+sns.countplot(x="Pclass", hue="Survived", data=df)
+plt.title("Pclass vs Survived")
+plt.show()
+
+# Age vs Fare
+sns.scatterplot(x="Age", y="Fare", data=df)
+plt.title("Age vs Fare")
+plt.show()
+
+# Correlation Heatmap
+plt.figure(figsize=(10, 8))
+
+numeric_df = df.select_dtypes(include=["number"])
+
+sns.heatmap(numeric_df.corr(), cmap="inferno")
+plt.show()
+
+# Feature Scaling
+X = df.drop("Survived", axis=1)
+Y = df["Survived"]
+
+# Remove unnecessary columns
+X = X.drop(["PassengerId", "Name", "Ticket", "Cabin", "Embarked"], axis=1)
+
+from sklearn.preprocessing import StandardScaler
+
+scaler = StandardScaler()
+
+X[["Age", "Fare"]] = scaler.fit_transform(X[["Age", "Fare"]])
+
+print(X.head(15))
+
+# Train Test Split
+from sklearn.model_selection import train_test_split
+
+X_train, X_test, Y_train, Y_test = train_test_split(
+    X, Y, test_size=0.2, random_state=42
+)
+
+print("Training data:", X_train.shape)
+print("Testing data:", X_test.shape)
+
+print(X_train.head())
